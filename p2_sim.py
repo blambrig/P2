@@ -1,8 +1,8 @@
 from p2_game import create_game, State
 from timeit import default_timer as time
 
-import mcts_vanilla as red_bot
-import mcts_vanilla as blue_bot
+import rollout_bot as red_bot
+import mcts_modified as blue_bot
 
 BOTS = {'red': red_bot, 'blue': blue_bot}
 

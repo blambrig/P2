@@ -7,9 +7,11 @@ num_nodes = 1000
 explore_faction = 2.
 
 def make_choice(root_node):
-    node_list = list(root_node.child_nodes.values())
-    node_list.sort(key=lambda i: i.visits)
-    return node_list[-1]
+    # node_list = list(root_node.child_nodes.values())
+    # node_list.sort(key=lambda i: i.visits)
+    # return node_list[-1]
+    # This should be slightly more efficient. Here we do not convert values to a list.
+    return sorted(root_node.child_nodes.values(), key=lambda i: i.visits, reverse=True)[0]
 
 # Selection
 def traverse_nodes(node, state, identity):
@@ -113,7 +115,7 @@ def think(state):
         backpropagate(node, result)
     choice = make_choice(root_node)
     action = choice.parent_action
-    print("MCTS bot picking %s with visits = %f" % (action, choice.visits))
+    #print("MCTS bot picking %s with visits = %f" % (action, choice.visits))
     return action
 
     # Return an action, typically the most frequently used action (from the root) or the action with the best
