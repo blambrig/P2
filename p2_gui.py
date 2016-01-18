@@ -1,8 +1,8 @@
 from tkinter import *
 from p2_game import create_game, State
 
-import random_bot as red_bot
-import rollout_bot as blue_bot
+import mcts_vanilla as red_bot
+import mcts_vanilla as blue_bot
 
 BOTS = {'red': red_bot, 'blue': blue_bot}
 
