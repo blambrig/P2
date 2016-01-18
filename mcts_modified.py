@@ -10,7 +10,7 @@ def make_choice(root_node):
     # node_list = list(root_node.child_nodes.values())
     # node_list.sort(key=lambda i: i.visits)
     # return node_list[-1]
-    return sorted(root_node.child_nodes.values(), key=lambda i: i.visits)[-1]
+    return max(root_node.child_nodes.values(), key=lambda i: i.visits)
 
 # Selection
 def traverse_nodes(node, state, identity):
@@ -24,8 +24,16 @@ def traverse_nodes(node, state, identity):
     Returns:        A node from which the next stage of the search can proceed.
 
     """
+    def my_turn (state, identity):
+        return state.player_turn == identity
+    def ucb (n, state, identity):
+        if my_turn(state, identity):
+            return n.wins/n.visits + explore_faction * sqrt(2*log(n.parent.visits)/n.visits)
+        else:
+            return 1 - (n.wins/n.visits) + explore_faction * sqrt(2*log(n.parent.visits)/n.visits)
+
     while not node.untried_actions and node.child_nodes:
-        leaf_node = sorted(node.child_nodes.values(), key=lambda n: n.wins/n.visits + explore_faction * sqrt(2*log(n.parent.visits)/n.visits))[-1]
+        leaf_node = max(node.child_nodes.values(), key=lambda n: ucb(n, state, identity))
         state.apply_move(leaf_node.parent_action)
         #print('MCTS Bot traversing to' + str(leaf_node.parent_action))
         node = leaf_node
@@ -91,6 +99,11 @@ def think(state):
     Returns:    The action to be taken.
 
     """
+    def get_result (sampled_game):
+        reds, blues = sampled_game.score.get('red', 0), sampled_game.score.get('blue', 0)
+        result = reds - blues if identity_of_bot == 'red' else blues - reds
+        return result
+
     identity_of_bot = state.player_turn
     root_node = MCTSNode(parent=None, parent_action=None, action_list=state.legal_moves)
 
@@ -105,13 +118,7 @@ def think(state):
         node = traverse_nodes(node, sampled_game, identity_of_bot)
         node = expand_leaf(node, sampled_game)
         rollout(sampled_game)
-        if sampled_game.winner == identity_of_bot:
-            result = 1
-        elif sampled_game.winner == 'tie':
-            result = 0.5
-        else:
-            result = -1
-        backpropagate(node, result)
+        backpropagate(node, get_result(sampled_game))
     choice = make_choice(root_node)
     action = choice.parent_action
     #print("MCTS (modified) bot picking %s with visits = %f and wins %f" % (action, choice.visits, choice.wins))

@@ -12,14 +12,14 @@ if hasattr(red_bot, 'num_nodes'):
 if hasattr(blue_bot, 'num_nodes'):
     blue_bot.num_nodes = 1000
 
-rounds = 100
+rounds = 1000
 wins = {}
 
 start = time()  # To log how much time the simulation takes.
 for i in range(rounds):
 
     print("")
-    print("Round %d, fight!" % i)
+    print("Round %d, fight!" % i, dict(wins))
 
     game = create_game(4)   # Specify the size of the grid in vertices. In this case, 4x4
     state = State(game)     # Create a state from the instance of the game
