@@ -6,11 +6,17 @@ from math import sqrt, log
 num_nodes = 1000
 explore_faction = 2.
 
-def make_choice(root_node):
-    # node_list = list(root_node.child_nodes.values())
-    # node_list.sort(key=lambda i: i.visits)
-    # return node_list[-1]
-    return max(root_node.child_nodes.values(), key=lambda i: i.visits)
+def make_choice(root_node, state, identity):
+    return max(root_node.child_nodes.values(), key=lambda n: ucb(n, state, identity))
+
+def my_turn (state, identity):
+        return state.player_turn == identity
+
+def ucb (n, state, identity):
+    if my_turn(state, identity):
+        return n.wins/n.visits + explore_faction * sqrt(2*log(n.parent.visits)/n.visits)
+    else:
+        return 1 - (n.wins/n.visits) + explore_faction * sqrt(2*log(n.parent.visits)/n.visits)
 
 # Selection
 def traverse_nodes(node, state, identity):
@@ -24,14 +30,6 @@ def traverse_nodes(node, state, identity):
     Returns:        A node from which the next stage of the search can proceed.
 
     """
-    def my_turn (state, identity):
-        return state.player_turn == identity
-    def ucb (n, state, identity):
-        if my_turn(state, identity):
-            return n.wins/n.visits + explore_faction * sqrt(2*log(n.parent.visits)/n.visits)
-        else:
-            return 1 - (n.wins/n.visits) + explore_faction * sqrt(2*log(n.parent.visits)/n.visits)
-
     while not node.untried_actions and node.child_nodes:
         leaf_node = max(node.child_nodes.values(), key=lambda n: ucb(n, state, identity))
         state.apply_move(leaf_node.parent_action)
@@ -119,7 +117,8 @@ def think(state):
         node = expand_leaf(node, sampled_game)
         rollout(sampled_game)
         backpropagate(node, get_result(sampled_game))
-    choice = make_choice(root_node)
+
+    choice = make_choice(root_node, state, identity_of_bot)
     action = choice.parent_action
     #print("MCTS (modified) bot picking %s with visits = %f and wins %f" % (action, choice.visits, choice.wins))
     return action

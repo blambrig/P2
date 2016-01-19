@@ -12,7 +12,7 @@ if hasattr(red_bot, 'num_nodes'):
 if hasattr(blue_bot, 'num_nodes'):
     blue_bot.num_nodes = 1000
 
-rounds = 1000
+rounds = 100
 wins = {}
 
 start = time()  # To log how much time the simulation takes.

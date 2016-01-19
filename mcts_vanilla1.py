@@ -1,9 +1,9 @@
-
+1
 from mcts_node import MCTSNode
 from random import choice
 from math import sqrt, log
 
-num_nodes = 1000
+num_nodes = 100
 explore_faction = 2.
 
 def make_choice(root_node, state, identity):
@@ -125,3 +125,4 @@ def think(state):
 
     # Return an action, typically the most frequently used action (from the root) or the action with the best
     # estimated win rate.
+2654
