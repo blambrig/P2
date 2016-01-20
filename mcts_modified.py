@@ -1,20 +1,31 @@
-
 from mcts_node import MCTSNode
 from random import choice
 from math import sqrt, log
 
-num_nodes = 1000
+num_nodes = 100
 explore_faction = 2.
 
 def make_choice(root_node, state, identity):
-    return max(root_node.child_nodes.values(), key=lambda n: ucb(n, state, identity))
+    return max(root_node.child_nodes.values(), key=lambda n: ucb_heuristics(n, state, identity))
 
 def my_turn (state, identity):
         return state.player_turn == identity
 
-def ucb (n, state, identity):
+def ucb_heuristics (n, state, identity):
     if my_turn(state, identity):
-        return n.wins/n.visits + explore_faction * sqrt(2*log(n.parent.visits)/n.visits)
+        adjust = 0
+        copy = state.copy()
+        orig_len = len(copy.box_owners)
+        copy.apply_move(n.parent_action)
+        if len(copy.box_owners) > orig_len: adjust += 9001
+        cell = n.parent_action[1]
+        x, y = cell
+        for i in range (-1, 2, 1):
+            for j in range (-1, 2, 1):
+                check = (x+i, y+i)
+                if check in state.h_line_owners: adjust -= 100
+                if check in state.v_line_owners: adjust -= 100
+        return (n.wins/n.visits) + adjust + explore_faction * sqrt(2*log(n.parent.visits)/n.visits)
     else:
         return 1 - (n.wins/n.visits) + explore_faction * sqrt(2*log(n.parent.visits)/n.visits)
 
@@ -31,7 +42,7 @@ def traverse_nodes(node, state, identity):
 
     """
     while not node.untried_actions and node.child_nodes:
-        leaf_node = max(node.child_nodes.values(), key=lambda n: ucb(n, state, identity))
+        leaf_node = max(node.child_nodes.values(), key=lambda n: ucb_heuristics(n, state, identity))
         state.apply_move(leaf_node.parent_action)
         #print('MCTS Bot traversing to' + str(leaf_node.parent_action))
         node = leaf_node
