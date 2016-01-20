@@ -98,9 +98,10 @@ def think(state):
 
     """
     def get_result (sampled_game):
-        reds, blues = sampled_game.score.get('red', 0), sampled_game.score.get('blue', 0)
-        result = reds - blues if identity_of_bot == 'red' else blues - reds
-        return result
+        if sampled_game.winner == identity_of_bot: return 1
+        if sampled_game.winner == 'tie': return 0.5
+        if sampled_game.winner != identity_of_bot: return -1
+        else: return -1
 
     identity_of_bot = state.player_turn
     root_node = MCTSNode(parent=None, parent_action=None, action_list=state.legal_moves)
