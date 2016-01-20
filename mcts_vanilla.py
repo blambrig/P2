@@ -1,7 +1,7 @@
-
 from mcts_node import MCTSNode
 from random import choice
 from math import sqrt, log
+from timeit import default_timer as time
 
 num_nodes = 1000
 explore_faction = 2.
@@ -33,10 +33,8 @@ def traverse_nodes(node, state, identity):
     while not node.untried_actions and node.child_nodes:
         leaf_node = max(node.child_nodes.values(), key=lambda n: ucb(n, state, identity))
         state.apply_move(leaf_node.parent_action)
-        #print('MCTS Bot traversing to' + str(leaf_node.parent_action))
         node = leaf_node
     else:
-        #print('Not fully expanded yet')
         return node
     # Hint: return leaf_node
 
@@ -57,7 +55,6 @@ def expand_leaf(node, state):
         new_node = MCTSNode(parent=node, parent_action=move, action_list=state.legal_moves)
         node.untried_actions.remove(move)
         node.child_nodes[move] = new_node
-        #print('New node created.')
         return new_node
     # Hint: return new_node
 
@@ -70,7 +67,6 @@ def rollout(state):
 
     """
     while not state.is_terminal():
-        #print('Rollout!')
         state.apply_move(choice(state.legal_moves))
 
 # Backpropagate
@@ -83,7 +79,6 @@ def backpropagate(node, won):
 
     """
     while node:
-        #print('Backpropagating...')
         node.visits += 1
         node.wins += won
         node = node.parent
@@ -97,6 +92,8 @@ def think(state):
     Returns:    The action to be taken.
 
     """
+    start = time()
+    time_elapsed = 0
     def get_result (sampled_game):
         if sampled_game.winner == identity_of_bot: return 1
         if sampled_game.winner == 'tie': return 0.5
@@ -106,7 +103,8 @@ def think(state):
     identity_of_bot = state.player_turn
     root_node = MCTSNode(parent=None, parent_action=None, action_list=state.legal_moves)
 
-    for step in range(num_nodes):
+    while time_elapsed < 10:
+    #for step in range(num_nodes):
         # Copy the game for sampling a playthrough
         sampled_game = state.copy()
 
@@ -118,10 +116,16 @@ def think(state):
         node = expand_leaf(node, sampled_game)
         rollout(sampled_game)
         backpropagate(node, get_result(sampled_game))
+        time_elapsed = time() - start
 
+    # Make choice based on tree
     choice = make_choice(root_node, state, identity_of_bot)
     action = choice.parent_action
-    #print("MCTS (modified) bot picking %s with visits = %f and wins %f" % (action, choice.visits, choice.wins))
+
+    # Write tree to file for time testing (Extra Credit Assignment)
+    file = open('mcts_vanilla.out', 'a')
+    file.write(root_node.tree_to_string(horizon=100, indent=1))
+
     return action
 
     # Return an action, typically the most frequently used action (from the root) or the action with the best
